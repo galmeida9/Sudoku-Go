@@ -18,10 +18,10 @@ func CreateSquare() Square {
 		values:  [][]int{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
 	}
 
-	var filledNumb int = 4
+	filledNumb := 4
 	for filledNumb > 0 {
-		var column int = rand.Intn(3)
-		var row int = rand.Intn(3)
+		column := rand.Intn(3)
+		row := rand.Intn(3)
 
 		if square.values[row][column] == 0 {
 			square.values[row][column] = rand.Intn(9) + 1
@@ -32,15 +32,15 @@ func CreateSquare() Square {
 	return square
 }
 
-func PrintLine(square Square, row int) (line string) {
-	for i := 0; i < square.columns; i++ {
-		if square.values[row][i] == 0 {
+func (s Square) PrintLine(row int) (line string) {
+	for i := 0; i < s.columns; i++ {
+		if s.values[row][i] == 0 {
 			line += "   "
 		} else {
-			line += " " + strconv.Itoa(square.values[row][i]) + " "
+			line += " " + strconv.Itoa(s.values[row][i]) + " "
 		}
 
-		if i < square.columns-1 {
+		if i < s.columns-1 {
 			line += "|"
 		}
 	}

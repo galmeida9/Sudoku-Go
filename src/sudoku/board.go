@@ -3,10 +3,15 @@ package sudoku
 import "fmt"
 
 type Board struct {
+	row     int
+	columns int
 	Squares [3][3]Square
 }
 
 func CreateBoard() (b Board) {
+	b.row = 3
+	b.columns = 3
+
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 3; j++ {
 			b.Squares[i][j] = CreateSquare()
@@ -16,13 +21,13 @@ func CreateBoard() (b Board) {
 	return
 }
 
-func PrintBoard(b Board) {
+func (b Board) PrintBoard() {
 	for i := 0; i < 3; i++ {
 		fmt.Println("========================================")
 		for j := 0; j < 3; j++ {
-			var line string = "||"
+			line := "||"
 			for g := 0; g < 3; g++ {
-				line += PrintLine(b.Squares[i][j], g) + "||"
+				line += b.Squares[i][j].PrintLine(g) + "||"
 			}
 			fmt.Println(line)
 		}
