@@ -11,6 +11,8 @@ import (
 type initialScreen struct {
 	logoTex, titleTex *sdl.Texture
 	titleFont         *ttf.Font
+	startButton       Button
+	continueButton    Button
 }
 
 func InitialScreen(gameObj Game) {
@@ -24,7 +26,7 @@ func InitialScreen(gameObj Game) {
 	screen.logoTex = logoTex
 	defer logoTex.Destroy()
 
-	titleFont, titleTex, err := loadLogoText(gameObj)
+	titleFont, titleTex, err := createText(gameObj.Renderer, "Sudoku Go", 64, 255, 255, 255, 255)
 	if err != nil {
 		fmt.Println("Error initializing sudoku logo text", err)
 		return
@@ -32,8 +34,39 @@ func InitialScreen(gameObj Game) {
 	screen.titleTex = titleTex
 	screen.titleFont = titleFont
 	defer titleTex.Destroy()
+	defer titleFont.Close()
+
+	createButtons(gameObj.Renderer, &screen)
 
 	renderInitialScreen(gameObj, screen)
+}
+
+func renderInitialScreen(gameObj Game, screen initialScreen) {
+	for {
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			switch event.(type) {
+			case *sdl.MouseButtonEvent:
+				// Check if it clicked on the button
+			case *sdl.QuitEvent:
+				return
+			}
+		}
+
+		gameObj.Renderer.SetDrawColor(46, 42, 56, 255)
+		gameObj.Renderer.Clear()
+
+		gameObj.Renderer.Copy(screen.logoTex,
+			&sdl.Rect{X: 0, Y: 0, W: 512, H: 512},
+			&sdl.Rect{X: 70, Y: 100, W: 128, H: 128})
+
+		textW, textH, _ := screen.titleFont.SizeUTF8("Sudoku Go")
+		gameObj.Renderer.Copy(screen.titleTex, nil, &sdl.Rect{X: 210, Y: 100, W: int32(textW), H: int32(textH)})
+
+		screen.startButton.drawButton(gameObj.Renderer)
+		screen.continueButton.drawButton(gameObj.Renderer)
+
+		gameObj.Renderer.Present()
+	}
 }
 
 func loadLogoImg(renderer *sdl.Renderer) (*sdl.Texture, error) {
@@ -51,44 +84,20 @@ func loadLogoImg(renderer *sdl.Renderer) (*sdl.Texture, error) {
 	return logoTex, nil
 }
 
-func loadLogoText(gameObj Game) (*ttf.Font, *sdl.Texture, error) {
-	titleFont, err := ttf.OpenFont("resources/fonts/YuseiMagic-Regular.ttf", 64)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Error initializing game font: ", err)
-	}
+func createButtons(renderer *sdl.Renderer, screen *initialScreen) {
+	screen.startButton = createButton(
+		renderer,
+		&sdl.Rect{X: 75, Y: 400, W: 450, H: 105},
+		&sdl.Color{R: 143, G: 143, B: 143, A: 255},
+		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
+		"Start Game",
+		56)
 
-	titleSurface, err := titleFont.RenderUTF8Blended("Sudoku Go", sdl.Color{R: 255, G: 255, B: 255, A: 255})
-	if err != nil {
-		return nil, nil, fmt.Errorf("Error initializing sudoku title logo surface: ", err)
-	}
-
-	titleTex, err := gameObj.Renderer.CreateTextureFromSurface(titleSurface)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Error initializing sudoku title logo texture: ", err)
-	}
-
-	return titleFont, titleTex, nil
-}
-
-func renderInitialScreen(gameObj Game, screen initialScreen) {
-	for {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
-				return
-			}
-		}
-
-		gameObj.Renderer.SetDrawColor(46, 42, 56, 255)
-		gameObj.Renderer.Clear()
-
-		gameObj.Renderer.Copy(screen.logoTex,
-			&sdl.Rect{X: 0, Y: 0, W: 512, H: 512},
-			&sdl.Rect{X: 70, Y: 100, W: 128, H: 128})
-
-		textW, textH, _ := screen.titleFont.SizeUTF8("Sudoku Go")
-		gameObj.Renderer.Copy(screen.titleTex, nil, &sdl.Rect{X: 210, Y: 100, W: int32(textW), H: int32(textH)})
-
-		gameObj.Renderer.Present()
-	}
+	screen.continueButton = createButton(
+		renderer,
+		&sdl.Rect{X: 75, Y: 550, W: 450, H: 105},
+		&sdl.Color{R: 143, G: 143, B: 143, A: 255},
+		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
+		"Continue Game",
+		56)
 }

@@ -55,3 +55,22 @@ func initializeDependencies() error {
 
 	return nil
 }
+
+func createText(renderer *sdl.Renderer, text string, size int, r, g, b, a uint8) (*ttf.Font, *sdl.Texture, error) {
+	textFont, err := ttf.OpenFont("resources/fonts/YuseiMagic-Regular.ttf", size)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Error initializing game font: ", err)
+	}
+
+	titleSurface, err := textFont.RenderUTF8Blended(text, sdl.Color{R: r, G: g, B: b, A: a})
+	if err != nil {
+		return nil, nil, fmt.Errorf("Error initializing sudoku title logo surface: ", err)
+	}
+
+	textTex, err := renderer.CreateTextureFromSurface(titleSurface)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Error initializing sudoku title logo texture: ", err)
+	}
+
+	return textFont, textTex, nil
+}
