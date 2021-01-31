@@ -46,7 +46,8 @@ func renderInitialScreen(gameObj Game, screen initialScreen) {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch event.(type) {
 			case *sdl.MouseButtonEvent:
-				// Check if it clicked on the button
+				screen.startButton.processEvent(event)
+				screen.continueButton.processEvent(event)
 			case *sdl.QuitEvent:
 				return
 			}
@@ -88,7 +89,7 @@ func createButtons(renderer *sdl.Renderer, screen *initialScreen) {
 	screen.startButton = createButton(
 		renderer,
 		&sdl.Rect{X: 75, Y: 400, W: 450, H: 105},
-		&sdl.Color{R: 143, G: 143, B: 143, A: 255},
+		&sdl.Color{R: 240, G: 228, B: 81, A: 255},
 		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
 		"Start Game",
 		56)
@@ -96,7 +97,7 @@ func createButtons(renderer *sdl.Renderer, screen *initialScreen) {
 	screen.continueButton = createButton(
 		renderer,
 		&sdl.Rect{X: 75, Y: 550, W: 450, H: 105},
-		&sdl.Color{R: 143, G: 143, B: 143, A: 255},
+		&sdl.Color{R: 85, G: 217, B: 102, A: 255},
 		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
 		"Continue Game",
 		56)
