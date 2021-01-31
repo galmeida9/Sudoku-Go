@@ -11,14 +11,14 @@ const (
 )
 
 func main() {
-	window, renderer, err := game.CreateGameWindow()
+	gameObj, err := game.CreateGameWindow()
 
 	if err != nil {
 		fmt.Println("Error initializing window: ", err)
 	}
 
-	defer window.Destroy()
-	defer renderer.Destroy()
+	defer gameObj.Window.Destroy()
+	defer gameObj.Renderer.Destroy()
 
-	game.InitialScreen(renderer)
+	game.InitialScreen(gameObj)
 }

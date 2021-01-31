@@ -3,7 +3,9 @@ package game
 import (
 	"fmt"
 
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 const (
@@ -11,9 +13,14 @@ const (
 	screenHeight = 800
 )
 
-func CreateGameWindow() (*sdl.Window, *sdl.Renderer, error) {
-	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
-		return nil, nil, fmt.Errorf("Error initializing SDL: ", err)
+type Game struct {
+	Window   *sdl.Window
+	Renderer *sdl.Renderer
+}
+
+func CreateGameWindow() (Game, error) {
+	if err := initializeDependencies(); err != nil {
+		return Game{}, fmt.Errorf("Error initializing Dependencies: ", err)
 	}
 
 	window, err := sdl.CreateWindow(
@@ -22,47 +29,29 @@ func CreateGameWindow() (*sdl.Window, *sdl.Renderer, error) {
 		screenWidth, screenHeight,
 		sdl.WINDOW_OPENGL)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error initializing window: ", err)
+		return Game{}, fmt.Errorf("Error initializing window: ", err)
 	}
 
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error initializing renderer: ", err)
+		return Game{}, fmt.Errorf("Error initializing renderer: ", err)
 	}
 
-	return window, renderer, nil
+	return Game{Window: window, Renderer: renderer}, nil
 }
 
-func InitialScreen(renderer *sdl.Renderer) {
-	img, err := sdl.LoadBMP("resources/img/sudoku.bmp")
-	if err != nil {
-		fmt.Println("Error initializing sudoku logo image: ", err)
-		return
+func initializeDependencies() error {
+	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
+		return fmt.Errorf("Error initializing SDL: ", err)
 	}
-	defer img.Free()
 
-	logoTex, err := renderer.CreateTextureFromSurface(img)
-	if err != nil {
-		fmt.Println("Error initializing sudoku logo texture: ", err)
-		return
+	if err := ttf.Init(); err != nil {
+		return fmt.Errorf("Error initializing TTF: ", err)
 	}
-	defer logoTex.Destroy()
 
-	for {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
-				return
-			}
-		}
-
-		renderer.SetDrawColor(255, 255, 255, 255)
-		renderer.Clear()
-
-		renderer.Copy(logoTex,
-			&sdl.Rect{X: 0, Y: 0, W: 512, H: 512},
-			&sdl.Rect{X: 40, Y: 20, W: 128, H: 128})
-
-		renderer.Present()
+	if err := img.Init(sdl.INIT_EVERYTHING); err != nil {
+		return fmt.Errorf("Error initializing SDL: ", err)
 	}
+
+	return nil
 }
