@@ -3,6 +3,7 @@ package sudoku
 import (
 	"fmt"
 	"math/rand"
+	"reflect"
 	"time"
 )
 
@@ -239,6 +240,16 @@ func checkCol(grid [][]int, col, value int) bool {
 	return false
 }
 
+func checkRow(grid [][]int, row, value int) bool {
+	for i := 0; i < rowSize; i++ {
+		if grid[row][i] == value {
+			return true
+		}
+	}
+
+	return false
+}
+
 func getSquare(grid [][]int, minRow, maxRow, minCol, maxCol int) [][]int {
 	var square [][]int
 	square = make([][]int, 3)
@@ -257,4 +268,28 @@ func squareHas(square [][]int, value int) bool {
 	}
 
 	return false
+}
+
+func CheckValue(grid [][]int, row, col, value int) bool {
+	minRow := row / 3 * 3
+	maxRow := (row/3 + 1) * 3
+	minCol := col / 3 * 3
+	maxCol := (col/3 + 1) * 3
+	return !checkCol(grid, col, value) && !checkRow(grid, row, value) && !squareHas(getSquare(grid, minRow, maxRow, minCol, maxCol), value)
+}
+
+// GetImpossibleNum returns de values that are not possible in a given position
+func GetImpossibleNum(grid [][]int, row, col int) []int {
+	var availableOptions []int
+	for i := 1; i < 10; i++ {
+		if !CheckValue(grid, row, col, i) {
+			availableOptions = append(availableOptions, i)
+		}
+	}
+
+	return availableOptions
+}
+
+func CheckSolution(grid [][]int) bool {
+	return reflect.DeepEqual(grid, gridSolution)
 }

@@ -8,16 +8,25 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+type matrixCell struct {
+	b *button
+	// if it is a number that came with the puzzle
+	initial  bool
+	row, col int
+}
+
 var grid [][]int
-var matrixCells [9][9]button
-var selectedCell *button
+var matrixCells [9][9]matrixCell
+var selectedCell matrixCell
 var buttons [9]button
+var counter int
 
 func startNewSudokuGame(b *button) {
 	grid = sudoku.CreateGrid()
-	fmt.Println(grid)
+	selectedCell = matrixCell{b: nil, row: 0, col: 0}
 	createMatrix()
 	createNumInput()
+	initilizeCounter()
 	renderSudokuScreen()
 }
 
@@ -48,18 +57,26 @@ func createMatrix() {
 
 	for row := 0; row < 9; row++ {
 		for col := 0; col < 9; col++ {
+			matrixCells[row][col].row = row
+			matrixCells[row][col].col = col
+
 			numb := strconv.Itoa(grid[row][col])
 			if numb == "0" {
 				numb = " "
+				matrixCells[row][col].initial = false
+			} else {
+				matrixCells[row][col].initial = true
 			}
 
-			matrixCells[row][col] = createButton(
+			cell := createButton(
 				&sdl.Rect{X: int32(startX + col*inc), Y: int32(startY + row*inc), W: 50, H: 50},
 				&sdl.Color{R: 214, G: 214, B: 214, A: 255},
 				&sdl.Color{R: 0, G: 0, B: 0, A: 0},
 				numb,
 				24,
 				changeColor)
+
+			matrixCells[row][col].b = &cell
 		}
 	}
 }
@@ -92,7 +109,7 @@ func drawMatrix() {
 				division.drawButton()
 			}
 
-			matrixCells[row][col].drawButton()
+			matrixCells[row][col].b.drawButton()
 		}
 	}
 
@@ -145,11 +162,13 @@ func changeColor(b *button) {
 			a uint8
 		}{r: 240, g: 228, b: 81, a: 255}
 
-		if selectedCell != nil {
-			changeColor(selectedCell)
+		if selectedCell.b != nil {
+			changeColor(selectedCell.b)
 		}
 
-		selectedCell = b
+		selectedCell.b = b
+
+		setAvailableOpt(sudoku.GetImpossibleNum(grid, selectedCell.row, selectedCell.col))
 	} else {
 		b.Color = struct {
 			r uint8
@@ -158,26 +177,71 @@ func changeColor(b *button) {
 			a uint8
 		}{r: 214, g: 214, b: 214, a: 255}
 
-		selectedCell = nil
+		selectedCell.b = nil
 	}
 }
 
 func changeCellNum(b *button) {
-	if selectedCell != nil {
-		selectedCell.Text = b.Text
-		_, selectedCell.Text.textTex, _ = createText(b.Text.text, 24, 110, 110, 110, 255)
-		changeColor(selectedCell)
+	num, _ := strconv.Atoi(b.Text.text)
+	if selectedCell.b != nil && sudoku.CheckValue(grid, selectedCell.row, selectedCell.col, num) {
+		selectedCell.b.Text = b.Text
+		_, selectedCell.b.Text.textTex, _ = createText(b.Text.text, 24, 110, 110, 110, 255)
+		changeColor(selectedCell.b)
+		grid[selectedCell.row][selectedCell.col] = num
+	}
+}
+
+func setAvailableOpt(opt []int) {
+	resetOpt()
+	for i := 0; i < len(opt); i++ {
+		buttons[opt[i]-1].Color = struct {
+			r uint8
+			g uint8
+			b uint8
+			a uint8
+		}{r: 125, g: 125, b: 125, a: 255}
+	}
+}
+
+func resetOpt() {
+	for i := 0; i < len(buttons); i++ {
+		buttons[i].Color = struct {
+			r uint8
+			g uint8
+			b uint8
+			a uint8
+		}{r: 214, g: 214, b: 214, a: 255}
 	}
 }
 
 func processButtonEvents(event sdl.Event) {
 	for row := 0; row < 9; row++ {
 		for col := 0; col < 9; col++ {
-			matrixCells[row][col].processEvent(event)
+			if !matrixCells[row][col].initial {
+				if matrixCells[row][col].b.processEvent(event) {
+					selectedCell.row = row
+					selectedCell.col = col
+					break
+				}
+			}
+
+			if counter == 0 && sudoku.CheckSolution(grid) {
+				fmt.Println("YOU HAVE WON!")
+			}
 		}
 	}
 
 	for i := 0; i < 9; i++ {
 		buttons[i].processEvent(event)
+	}
+}
+
+func initilizeCounter() {
+	for row := 0; row < 9; row++ {
+		for col := 0; col < 9; col++ {
+			if grid[row][col] == 0 {
+				counter++
+			}
+		}
 	}
 }
