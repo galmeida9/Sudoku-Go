@@ -1,12 +1,10 @@
 package game
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type Button struct {
+type button struct {
 	Rect  *sdl.Rect
 	Color struct {
 		r, g, b, a uint8
@@ -18,11 +16,11 @@ type Button struct {
 	}
 }
 
-func createButton(renderer *sdl.Renderer, rect *sdl.Rect, color, textColor *sdl.Color, text string, textSize int) Button {
-	textFont, textTex, _ := createText(renderer, text, textSize, textColor.R, textColor.G, textColor.B, textColor.A)
+func createButton(rect *sdl.Rect, color, textColor *sdl.Color, text string, textSize int) button {
+	textFont, textTex, _ := createText(text, textSize, textColor.R, textColor.G, textColor.B, textColor.A)
 	textW, textH, _ := textFont.SizeUTF8("Sudoku Go")
 
-	return Button{Rect: rect, Color: struct {
+	return button{Rect: rect, Color: struct {
 		r uint8
 		g uint8
 		b uint8
@@ -34,7 +32,7 @@ func createButton(renderer *sdl.Renderer, rect *sdl.Rect, color, textColor *sdl.
 	}{w: textW, h: textH, textTex: textTex}}
 }
 
-func (b *Button) drawButton(renderer *sdl.Renderer) bool {
+func (b *button) drawButton() bool {
 	renderer.SetDrawColor(b.Color.r, b.Color.g, b.Color.b, b.Color.a)
 	renderer.FillRect(b.Rect)
 	renderer.Copy(b.Text.textTex, nil, &sdl.Rect{
@@ -45,7 +43,6 @@ func (b *Button) drawButton(renderer *sdl.Renderer) bool {
 
 	// if button press detected - reset it so it wouldn't trigger twice
 	if b.Pressed {
-		fmt.Println("pressed")
 		b.Pressed = false
 		return true
 	}
@@ -53,12 +50,15 @@ func (b *Button) drawButton(renderer *sdl.Renderer) bool {
 	return false
 }
 
-func (b *Button) processEvent(event sdl.Event) {
+func (b *button) processEvent(event sdl.Event) bool {
 	x, y, state := sdl.GetMouseState()
 
 	if state == sdl.Button(sdl.BUTTON_LEFT) && x >= b.Rect.X &&
 		x <= (b.Rect.X+b.Rect.W) && y >= b.Rect.Y &&
 		y <= (b.Rect.Y+b.Rect.H) {
 		b.Pressed = true
+		return true
 	}
+
+	return false
 }

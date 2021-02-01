@@ -5,20 +5,18 @@ import (
 	"fmt"
 )
 
-const (
-	screenWidth  = 600
-	screenHeight = 800
-)
-
 func main() {
-	gameObj, err := game.CreateGameWindow()
-
-	if err != nil {
+	if err := game.CreateGameWindow(); err != nil {
 		fmt.Println("Error initializing window: ", err)
 	}
 
-	defer gameObj.Window.Destroy()
-	defer gameObj.Renderer.Destroy()
+	game.InitialScreen()
 
-	game.InitialScreen(gameObj)
+	// a := [1]int{2}
+	// test(&a)
+	// fmt.Println(a)
 }
+
+// func test(a *[1]int) {
+// 	a[0] = 3
+// }

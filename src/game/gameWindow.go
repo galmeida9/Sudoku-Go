@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -13,31 +14,35 @@ const (
 	screenHeight = 800
 )
 
-type Game struct {
-	Window   *sdl.Window
-	Renderer *sdl.Renderer
-}
+var window *sdl.Window
+var renderer *sdl.Renderer
 
-func CreateGameWindow() (Game, error) {
+// CreateGameWindow creates the window for the game
+func CreateGameWindow() error {
 	if err := initializeDependencies(); err != nil {
-		return Game{}, fmt.Errorf("Error initializing Dependencies: ", err)
+		return fmt.Errorf("Error initializing Dependencies: ", err)
 	}
 
-	window, err := sdl.CreateWindow(
+	var err error
+	window, err = sdl.CreateWindow(
 		"Sudoku Go",
 		sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		screenWidth, screenHeight,
 		sdl.WINDOW_OPENGL)
 	if err != nil {
-		return Game{}, fmt.Errorf("Error initializing window: ", err)
+		return fmt.Errorf("Error initializing window: ", err)
 	}
 
-	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
+	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
-		return Game{}, fmt.Errorf("Error initializing renderer: ", err)
+		return fmt.Errorf("Error initializing renderer: ", err)
 	}
 
-	return Game{Window: window, Renderer: renderer}, nil
+	if err = createWindowIcon(); err != nil {
+		return fmt.Errorf(err.Error())
+	}
+
+	return nil
 }
 
 func initializeDependencies() error {
@@ -56,7 +61,7 @@ func initializeDependencies() error {
 	return nil
 }
 
-func createText(renderer *sdl.Renderer, text string, size int, r, g, b, a uint8) (*ttf.Font, *sdl.Texture, error) {
+func createText(text string, size int, r, g, b, a uint8) (*ttf.Font, *sdl.Texture, error) {
 	textFont, err := ttf.OpenFont("resources/fonts/YuseiMagic-Regular.ttf", size)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error initializing game font: ", err)
@@ -73,4 +78,22 @@ func createText(renderer *sdl.Renderer, text string, size int, r, g, b, a uint8)
 	}
 
 	return textFont, textTex, nil
+}
+
+func createWindowIcon() error {
+	img, err := img.Load("resources/img/sudoku.png")
+	if err != nil {
+		return fmt.Errorf("Error setting window icon: ", err)
+	}
+	defer img.Free()
+
+	window.SetIcon(img)
+	return nil
+}
+
+func closeGame() {
+	renderer.Destroy()
+	window.Destroy()
+	sdl.Quit()
+	os.Exit(0)
 }
