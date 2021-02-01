@@ -15,18 +15,21 @@ type matrixCell struct {
 	row, col int
 }
 
-var grid [][]int
+// global variables to store the UI elements, so no redrawing is needed
 var matrixCells [9][9]matrixCell
-var selectedCell matrixCell
+var boundaryX, boundaryY [4]button
 var buttons [9]button
-var counter int
+
+// save globally the current matrix and the selected cell
+var grid [][]int
+var selectedCell matrixCell
 
 func startNewSudokuGame(b *button) {
 	grid = sudoku.CreateGrid()
 	selectedCell = matrixCell{b: nil, row: 0, col: 0}
 	createMatrix()
+	createBoundaries()
 	createNumInput()
-	initilizeCounter()
 	renderSudokuScreen()
 }
 
@@ -81,55 +84,39 @@ func createMatrix() {
 	}
 }
 
-func drawMatrix() {
-	startX, startY, inc := 35, 65, 60
+func createBoundaries() {
+	startX, startY, inc := 35, 65, 180
 
+	for i := 0; i < 4; i++ {
+		boundaryX[i] = createButton(
+			&sdl.Rect{X: int32(startX + i*inc - 10), Y: int32(startY), W: 10, H: 60 * 9},
+			&sdl.Color{R: 125, G: 125, B: 125, A: 255},
+			&sdl.Color{R: 0, G: 0, B: 0, A: 0},
+			"1",
+			1,
+			nil)
+
+		boundaryY[i] = createButton(
+			&sdl.Rect{X: int32(startX - 10), Y: int32(startY + i*inc - 10), W: 60*9 + 10, H: 10},
+			&sdl.Color{R: 125, G: 125, B: 125, A: 255},
+			&sdl.Color{R: 0, G: 0, B: 0, A: 0},
+			"1",
+			1,
+			nil)
+	}
+}
+
+func drawMatrix() {
 	for row := 0; row < 9; row++ {
 		for col := 0; col < 9; col++ {
-			//draw divisions
-			if col%3 == 0 {
-				division := createButton(
-					&sdl.Rect{X: int32(startX + col*inc - 10), Y: int32(startY + row*inc), W: 10, H: 60},
-					&sdl.Color{R: 125, G: 125, B: 125, A: 255},
-					&sdl.Color{R: 0, G: 0, B: 0, A: 0},
-					"1",
-					1,
-					nil)
-				division.drawButton()
-			}
-
-			if row%3 == 0 {
-				division := createButton(
-					&sdl.Rect{X: int32(startX + col*inc - 10), Y: int32(startY + row*inc - 10), W: 60, H: 10},
-					&sdl.Color{R: 125, G: 125, B: 125, A: 255},
-					&sdl.Color{R: 0, G: 0, B: 0, A: 0},
-					"1",
-					1,
-					nil)
-				division.drawButton()
-			}
-
 			matrixCells[row][col].b.drawButton()
 		}
 	}
 
-	division := createButton(
-		&sdl.Rect{X: int32(startX + 9*inc - 10), Y: int32(startY - 10), W: 10, H: 60 * 9},
-		&sdl.Color{R: 125, G: 125, B: 125, A: 255},
-		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
-		"1",
-		1,
-		nil)
-	division.drawButton()
-
-	division = createButton(
-		&sdl.Rect{X: int32(startX - 10), Y: int32(startY + 9*inc - 10), W: 60*9 + 10, H: 10},
-		&sdl.Color{R: 125, G: 125, B: 125, A: 255},
-		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
-		"1",
-		1,
-		nil)
-	division.drawButton()
+	for i := 0; i < 4; i++ {
+		boundaryX[i].drawButton()
+		boundaryY[i].drawButton()
+	}
 }
 
 func createNumInput() {
@@ -225,7 +212,7 @@ func processButtonEvents(event sdl.Event) {
 				}
 			}
 
-			if counter == 0 && sudoku.CheckSolution(grid) {
+			if checkCounter() == 0 && sudoku.CheckSolution(grid) {
 				fmt.Println("YOU HAVE WON!")
 			}
 		}
@@ -236,7 +223,8 @@ func processButtonEvents(event sdl.Event) {
 	}
 }
 
-func initilizeCounter() {
+func checkCounter() int {
+	counter := 0
 	for row := 0; row < 9; row++ {
 		for col := 0; col < 9; col++ {
 			if grid[row][col] == 0 {
@@ -244,4 +232,6 @@ func initilizeCounter() {
 			}
 		}
 	}
+
+	return counter
 }
