@@ -4,6 +4,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+type funcDef func(b *button)
+
 type button struct {
 	Rect  *sdl.Rect
 	Color struct {
@@ -13,12 +15,14 @@ type button struct {
 	Text    struct {
 		w, h    int
 		textTex *sdl.Texture
+		text    string
 	}
+	Fn funcDef
 }
 
-func createButton(rect *sdl.Rect, color, textColor *sdl.Color, text string, textSize int) button {
+func createButton(rect *sdl.Rect, color, textColor *sdl.Color, text string, textSize int, fn funcDef) button {
 	textFont, textTex, _ := createText(text, textSize, textColor.R, textColor.G, textColor.B, textColor.A)
-	textW, textH, _ := textFont.SizeUTF8("Sudoku Go")
+	textW, textH, _ := textFont.SizeUTF8(text)
 
 	return button{Rect: rect, Color: struct {
 		r uint8
@@ -29,7 +33,8 @@ func createButton(rect *sdl.Rect, color, textColor *sdl.Color, text string, text
 		w       int
 		h       int
 		textTex *sdl.Texture
-	}{w: textW, h: textH, textTex: textTex}}
+		text    string
+	}{w: textW, h: textH, textTex: textTex, text: text}, Fn: fn}
 }
 
 func (b *button) drawButton() bool {
@@ -44,6 +49,9 @@ func (b *button) drawButton() bool {
 	// if button press detected - reset it so it wouldn't trigger twice
 	if b.Pressed {
 		b.Pressed = false
+		if b.Fn != nil {
+			b.Fn(b)
+		}
 		return true
 	}
 
