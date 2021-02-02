@@ -1,7 +1,6 @@
 package sudoku
 
 import (
-	"fmt"
 	"math/rand"
 	"reflect"
 	"time"
@@ -14,32 +13,17 @@ const (
 
 var numbList = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-var gridSolution [][]int
+var gridSolution [9][]int
 
-func CreateGrid() [][]int {
-	grid := [][]int{
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0}}
-
-	fillGrid(&grid)
-	gridSolution = grid
-	fmt.Println(gridSolution)
-
-	return getGridToSolve(grid)
+func CreateGrid(difficulty int) [][]int {
+	return setDifficulty(difficulty)
 }
 
 func getGridToSolve(grid [][]int) [][]int {
 	//A higher number of attempts will end up removing more numbers from the grid
 	//Potentially resulting in more difficult grids to solve!
-	attempts := 5
 	counter := 1
+	attempts := 100
 
 	for attempts > 0 {
 		// Select a random cell that is not already empty
@@ -94,11 +78,11 @@ func solveGrid(grid *[][]int, counter *int) bool {
 		column = i % 9
 
 		if (*grid)[row][column] == 0 {
-			for value := 0; value < len(numbList); value++ {
+			for _, value := range numbList {
 				// check if this value is not already used in this row
-				if !has((*grid)[row], numbList[value]) {
+				if !has((*grid)[row], value) {
 					// check if this value is not already used in this column
-					if !checkCol((*grid), column, numbList[value]) {
+					if !checkCol((*grid), column, value) {
 						// identify which of the 9 squares we are looking for
 						var square [][]int
 						if row < 3 {
@@ -128,8 +112,8 @@ func solveGrid(grid *[][]int, counter *int) bool {
 						}
 
 						// Check that this value has not been already used on this 3x3 square
-						if !squareHas(square, numbList[value]) {
-							(*grid)[row][column] = numbList[value]
+						if !squareHas(square, value) {
+							(*grid)[row][column] = value
 
 							if checkGridFull((*grid)) {
 								(*counter)++
@@ -163,11 +147,11 @@ func fillGrid(grid *[][]int) bool {
 			rand.Seed(time.Now().UnixNano())
 			rand.Shuffle(len(numbList), func(i, j int) { numbList[i], numbList[j] = numbList[j], numbList[i] })
 
-			for value := 0; value < len(numbList); value++ {
+			for _, value := range numbList {
 				// check if this value is not already used in this row
-				if !has((*grid)[row], numbList[value]) {
+				if !has((*grid)[row], value) {
 					// check if this value is not already used in this column
-					if !checkCol((*grid), column, numbList[value]) {
+					if !checkCol((*grid), column, value) {
 						// identify which of the 9 squares we are looking for
 						var square [][]int
 						if row < 3 {
@@ -197,15 +181,11 @@ func fillGrid(grid *[][]int) bool {
 						}
 
 						// Check that this value has not been already used on this 3x3 square
-						if !squareHas(square, numbList[value]) {
-							(*grid)[row][column] = numbList[value]
+						if !squareHas(square, value) {
+							(*grid)[row][column] = value
 
-							if checkGridFull(*grid) {
+							if checkGridFull(*grid) || fillGrid(grid) {
 								return true
-							} else {
-								if fillGrid(grid) {
-									return true
-								}
 							}
 						}
 					}
@@ -221,7 +201,7 @@ func fillGrid(grid *[][]int) bool {
 }
 
 func has(array []int, value int) bool {
-	for i := 0; i < len(array); i++ {
+	for i := range array {
 		if array[i] == value {
 			return true
 		}
@@ -261,7 +241,7 @@ func getSquare(grid [][]int, minRow, maxRow, minCol, maxCol int) [][]int {
 }
 
 func squareHas(square [][]int, value int) bool {
-	for i := 0; i < len(square); i++ {
+	for i := range square {
 		if has(square[i], value) {
 			return true
 		}
@@ -292,4 +272,65 @@ func GetImpossibleNum(grid [][]int, row, col int) []int {
 
 func CheckSolution(grid [][]int) bool {
 	return reflect.DeepEqual(grid, gridSolution)
+}
+
+func setDifficulty(dif int) [][]int {
+	switch dif {
+	case 0:
+		return difficulty(1, 30)
+	case 1:
+		return difficulty(30, 50)
+	case 2:
+		return difficulty(50, 89)
+	}
+	return nil
+}
+
+func difficulty(min, max int) [][]int {
+	zeroes := 0
+	var gridToSolve [][]int
+
+	for zeroes < min {
+		gridCopy := [][]int{
+			{0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0}}
+
+		fillGrid(&gridCopy)
+
+		// Save the grid solution
+		for i := 0; i < rowSize; i++ {
+			gridSolution[i] = make([]int, len(gridCopy[i]))
+			copy(gridSolution[i], gridCopy[i])
+		}
+
+		gridToSolve = getGridToSolve(gridCopy)
+		zeroes = CheckZeroes(gridToSolve)
+
+		if zeroes > max {
+			zeroes = 0
+		}
+	}
+
+	return gridToSolve
+}
+
+// CheckZeroes counts how many zeroes does the matrix have
+func CheckZeroes(grid [][]int) int {
+	counter := 0
+	for row := 0; row < rowSize; row++ {
+		for col := 0; col < columnSize; col++ {
+			if grid[row][col] == 0 {
+				counter++
+			}
+		}
+	}
+
+	return counter
 }

@@ -17,6 +17,8 @@ const (
 var window *sdl.Window
 var renderer *sdl.Renderer
 
+var backButton button
+
 // CreateGameWindow creates the window for the game
 func CreateGameWindow() error {
 	if err := initializeDependencies(); err != nil {
@@ -96,4 +98,14 @@ func closeGame() {
 	window.Destroy()
 	sdl.Quit()
 	os.Exit(0)
+}
+
+func createBackButton() {
+	backButton = createButton(
+		&sdl.Rect{X: 475, Y: 15, W: 100, H: 40},
+		&sdl.Color{R: 125, G: 125, B: 125, A: 255},
+		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
+		"Back",
+		24,
+		nil)
 }

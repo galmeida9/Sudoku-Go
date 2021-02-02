@@ -93,7 +93,7 @@ func createButtons(screen *initialScreen) {
 		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
 		"Start Game",
 		56,
-		startNewSudokuGame)
+		chooseDifficulty)
 
 	screen.continueButton = createButton(
 		&sdl.Rect{X: 75, Y: 550, W: 450, H: 105},

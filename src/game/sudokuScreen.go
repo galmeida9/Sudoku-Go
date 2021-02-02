@@ -15,21 +15,38 @@ type matrixCell struct {
 	row, col int
 }
 
+const (
+	rowSize      = 9
+	colSize      = 9
+	boundarySize = 4
+)
+
 // global variables to store the UI elements, so no redrawing is needed
-var matrixCells [9][9]matrixCell
-var boundaryX, boundaryY [4]button
-var buttons [9]button
+var matrixCells [rowSize][colSize]matrixCell
+var boundaryX, boundaryY [boundarySize]button
+var buttons [colSize]button
 
 // save globally the current matrix and the selected cell
 var grid [][]int
 var selectedCell matrixCell
 
 func startNewSudokuGame(b *button) {
-	grid = sudoku.CreateGrid()
+	switch b.Text.text {
+	case "Easy":
+		grid = sudoku.CreateGrid(0)
+	case "Medium":
+		grid = sudoku.CreateGrid(1)
+	case "Hard":
+		grid = sudoku.CreateGrid(2)
+	}
 	selectedCell = matrixCell{b: nil, row: 0, col: 0}
+
 	createMatrix()
 	createBoundaries()
 	createNumInput()
+	createBackButton()
+	backButton.Fn = func(b *button) { chooseDifficulty(nil) }
+
 	renderSudokuScreen()
 }
 
@@ -49,16 +66,19 @@ func renderSudokuScreen() {
 
 		drawMatrix()
 		drawNumbInput()
+		backButton.drawButton()
 
 		renderer.Present()
 	}
 }
 
-func createMatrix() {
-	startX, startY, inc := 35, 65, 60
+// Create UI elements
 
-	for row := 0; row < 9; row++ {
-		for col := 0; col < 9; col++ {
+func createMatrix() {
+	startX, startY, inc := 35, 75, 60
+
+	for row := 0; row < rowSize; row++ {
+		for col := 0; col < colSize; col++ {
 			matrixCells[row][col].row = row
 			matrixCells[row][col].col = col
 
@@ -84,9 +104,9 @@ func createMatrix() {
 }
 
 func createBoundaries() {
-	startX, startY, inc := 35, 65, 180
+	startX, startY, inc := 35, 75, 180
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < boundarySize; i++ {
 		boundaryX[i] = createButton(
 			&sdl.Rect{X: int32(startX + i*inc - 10), Y: int32(startY), W: 10, H: 60 * 9},
 			&sdl.Color{R: 125, G: 125, B: 125, A: 255},
@@ -105,23 +125,10 @@ func createBoundaries() {
 	}
 }
 
-func drawMatrix() {
-	for row := 0; row < 9; row++ {
-		for col := 0; col < 9; col++ {
-			matrixCells[row][col].b.drawButton()
-		}
-	}
-
-	for i := 0; i < 4; i++ {
-		boundaryX[i].drawButton()
-		boundaryY[i].drawButton()
-	}
-}
-
 func createNumInput() {
 	startX, startY, inc := 35, 700, 60
 
-	for i := 0; i < 9; i++ {
+	for i := range buttons {
 		buttons[i] = createButton(
 			&sdl.Rect{X: int32(startX + i*inc), Y: int32(startY), W: 50, H: 50},
 			&sdl.Color{R: 214, G: 214, B: 214, A: 255},
@@ -132,11 +139,28 @@ func createNumInput() {
 	}
 }
 
+// Draw UI elements
+
+func drawMatrix() {
+	for row := 0; row < rowSize; row++ {
+		for col := 0; col < colSize; col++ {
+			matrixCells[row][col].b.drawButton()
+		}
+	}
+
+	for i := 0; i < boundarySize; i++ {
+		boundaryX[i].drawButton()
+		boundaryY[i].drawButton()
+	}
+}
+
 func drawNumbInput() {
-	for i := 0; i < 9; i++ {
+	for i := range buttons {
 		buttons[i].drawButton()
 	}
 }
+
+// Interaction methods
 
 func changeColor(b *button) {
 	// Check if color is the original one (grey)
@@ -179,7 +203,7 @@ func changeCellNum(b *button) {
 
 func setAvailableOpt(opt []int) {
 	resetOpt()
-	for i := 0; i < len(opt); i++ {
+	for i := range opt {
 		buttons[opt[i]-1].Color = struct {
 			r uint8
 			g uint8
@@ -190,7 +214,7 @@ func setAvailableOpt(opt []int) {
 }
 
 func resetOpt() {
-	for i := 0; i < len(buttons); i++ {
+	for i := range buttons {
 		buttons[i].Color = struct {
 			r uint8
 			g uint8
@@ -201,36 +225,23 @@ func resetOpt() {
 }
 
 func processButtonEvents(event sdl.Event) {
-	for row := 0; row < 9; row++ {
-		for col := 0; col < 9; col++ {
-			if !matrixCells[row][col].initial {
-				if matrixCells[row][col].b.processEvent(event) {
-					selectedCell.row = row
-					selectedCell.col = col
-					break
-				}
+	for row := 0; row < rowSize; row++ {
+		for col := 0; col < colSize; col++ {
+			if !matrixCells[row][col].initial && matrixCells[row][col].b.processEvent(event) {
+				selectedCell.row = row
+				selectedCell.col = col
+				break
 			}
 
-			if checkCounter() == 0 && sudoku.CheckSolution(grid) {
+			if sudoku.CheckZeroes(grid) == 0 && sudoku.CheckSolution(grid) {
 				fmt.Println("YOU HAVE WON!")
 			}
 		}
 	}
 
-	for i := 0; i < 9; i++ {
+	for i := range buttons {
 		buttons[i].processEvent(event)
 	}
-}
 
-func checkCounter() int {
-	counter := 0
-	for row := 0; row < 9; row++ {
-		for col := 0; col < 9; col++ {
-			if grid[row][col] == 0 {
-				counter++
-			}
-		}
-	}
-
-	return counter
+	backButton.processEvent(event)
 }
