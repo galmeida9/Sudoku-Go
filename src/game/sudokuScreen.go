@@ -2,17 +2,25 @@ package game
 
 import (
 	"Sudoku-Go/src/sudoku"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 type matrixCell struct {
-	b *button
+	B *button
 	// if it is a number that came with the puzzle
-	initial  bool
-	row, col int
+	Initial  bool
+	Row, Col int
+}
+
+type saveStatus struct {
+	Sol [9][]int
+	Cur [][]int
+	Org [9][]int
 }
 
 const (
@@ -28,6 +36,7 @@ var buttons [colSize]button
 
 // save globally the current matrix and the selected cell
 var grid [][]int
+var originalGrid [9][]int
 var selectedCell matrixCell
 
 func startNewSudokuGame(b *button) {
@@ -39,15 +48,15 @@ func startNewSudokuGame(b *button) {
 	case "Hard":
 		grid = sudoku.CreateGrid(2)
 	}
-	selectedCell = matrixCell{b: nil, row: 0, col: 0}
 
-	createMatrix()
-	createBoundaries()
-	createNumInput()
-	createBackButton()
-	backButton.Fn = func(b *button) { chooseDifficulty(nil) }
+	for i := 0; i < rowSize; i++ {
+		originalGrid[i] = make([]int, len(grid[i]))
+		copy(originalGrid[i], grid[i])
+	}
 
-	renderSudokuScreen()
+	selectedCell = matrixCell{B: nil, Row: 0, Col: 0}
+
+	createEverything()
 }
 
 func renderSudokuScreen() {
@@ -57,6 +66,7 @@ func renderSudokuScreen() {
 		case *sdl.MouseButtonEvent:
 			processButtonEvents(event)
 		case *sdl.QuitEvent:
+			saveGame()
 			closeGame()
 			return
 		}
@@ -74,31 +84,46 @@ func renderSudokuScreen() {
 
 // Create UI elements
 
+func createEverything() {
+	createMatrix()
+	createBoundaries()
+	createNumInput()
+	createBackButton()
+	backButton.Fn = func(b *button) { saveGame(); chooseDifficulty(nil) }
+
+	renderSudokuScreen()
+}
+
 func createMatrix() {
 	startX, startY, inc := 35, 75, 60
 
 	for row := 0; row < rowSize; row++ {
 		for col := 0; col < colSize; col++ {
-			matrixCells[row][col].row = row
-			matrixCells[row][col].col = col
+			matrixCells[row][col].Row = row
+			matrixCells[row][col].Col = col
 
 			numb := strconv.Itoa(grid[row][col])
+			color := &sdl.Color{R: 0, G: 0, B: 0, A: 0}
+
 			if numb == "0" {
 				numb = " "
-				matrixCells[row][col].initial = false
+				matrixCells[row][col].Initial = false
+			} else if originalGrid[row][col] != grid[row][col] {
+				matrixCells[row][col].Initial = false
+				color = &sdl.Color{R: 110, G: 110, B: 110, A: 255}
 			} else {
-				matrixCells[row][col].initial = true
+				matrixCells[row][col].Initial = true
 			}
 
 			cell := createButton(
 				&sdl.Rect{X: int32(startX + col*inc), Y: int32(startY + row*inc), W: 50, H: 50},
 				&sdl.Color{R: 214, G: 214, B: 214, A: 255},
-				&sdl.Color{R: 0, G: 0, B: 0, A: 0},
+				color,
 				numb,
 				24,
 				changeColor)
 
-			matrixCells[row][col].b = &cell
+			matrixCells[row][col].B = &cell
 		}
 	}
 }
@@ -144,7 +169,7 @@ func createNumInput() {
 func drawMatrix() {
 	for row := 0; row < rowSize; row++ {
 		for col := 0; col < colSize; col++ {
-			matrixCells[row][col].b.drawButton()
+			matrixCells[row][col].B.drawButton()
 		}
 	}
 
@@ -172,13 +197,13 @@ func changeColor(b *button) {
 			a uint8
 		}{r: 240, g: 228, b: 81, a: 255}
 
-		if selectedCell.b != nil {
-			changeColor(selectedCell.b)
+		if selectedCell.B != nil {
+			changeColor(selectedCell.B)
 		}
 
-		selectedCell.b = b
+		selectedCell.B = b
 
-		setAvailableOpt(sudoku.GetImpossibleNum(grid, selectedCell.row, selectedCell.col))
+		setAvailableOpt(sudoku.GetImpossibleNum(grid, selectedCell.Row, selectedCell.Col))
 	} else {
 		b.Color = struct {
 			r uint8
@@ -187,17 +212,17 @@ func changeColor(b *button) {
 			a uint8
 		}{r: 214, g: 214, b: 214, a: 255}
 
-		selectedCell.b = nil
+		selectedCell.B = nil
 	}
 }
 
 func changeCellNum(b *button) {
 	num, _ := strconv.Atoi(b.Text.text)
-	if selectedCell.b != nil && sudoku.CheckValue(grid, selectedCell.row, selectedCell.col, num) {
-		selectedCell.b.Text = b.Text
-		_, selectedCell.b.Text.textTex, _ = createText(b.Text.text, 24, 110, 110, 110, 255)
-		changeColor(selectedCell.b)
-		grid[selectedCell.row][selectedCell.col] = num
+	if selectedCell.B != nil && sudoku.CheckValue(grid, selectedCell.Row, selectedCell.Col, num) {
+		selectedCell.B.Text = b.Text
+		_, selectedCell.B.Text.textTex, _ = createText(b.Text.text, 24, 110, 110, 110, 255)
+		changeColor(selectedCell.B)
+		grid[selectedCell.Row][selectedCell.Col] = num
 	}
 }
 
@@ -227,9 +252,9 @@ func resetOpt() {
 func processButtonEvents(event sdl.Event) {
 	for row := 0; row < rowSize; row++ {
 		for col := 0; col < colSize; col++ {
-			if !matrixCells[row][col].initial && matrixCells[row][col].b.processEvent(event) {
-				selectedCell.row = row
-				selectedCell.col = col
+			if !matrixCells[row][col].Initial && matrixCells[row][col].B.processEvent(event) {
+				selectedCell.Row = row
+				selectedCell.Col = col
 				break
 			}
 
@@ -244,4 +269,34 @@ func processButtonEvents(event sdl.Event) {
 	}
 
 	backButton.processEvent(event)
+}
+
+func saveGame() {
+	gridSolution := sudoku.GetSolution()
+
+	saveGame := saveStatus{Sol: gridSolution, Cur: grid, Org: originalGrid}
+	fmt.Println(saveGame)
+
+	json, err := json.MarshalIndent(saveGame, "", " ")
+	if err != nil {
+		fmt.Errorf("error converting game state to json: ", err)
+	}
+
+	ioutil.WriteFile("savegame.json", json, 0644)
+}
+
+func loadGame() {
+	file, err := ioutil.ReadFile("savegame.json")
+	if err != nil {
+		fmt.Errorf("Error loading savegame: ", err)
+	}
+
+	data := saveStatus{}
+	_ = json.Unmarshal([]byte(file), &data)
+
+	sudoku.ReadSudoku(data.Sol)
+	grid = data.Cur
+	originalGrid = data.Org
+
+	createEverything()
 }

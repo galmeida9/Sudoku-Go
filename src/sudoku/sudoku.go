@@ -334,3 +334,15 @@ func CheckZeroes(grid [][]int) int {
 
 	return counter
 }
+
+func GetSolution() [9][]int {
+	return gridSolution
+}
+
+func ReadSudoku(sol [9][]int) {
+	// Save the grid solution
+	for i := 0; i < rowSize; i++ {
+		gridSolution[i] = make([]int, len(sol[i]))
+		copy(gridSolution[i], sol[i])
+	}
+}

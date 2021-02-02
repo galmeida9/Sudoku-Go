@@ -101,5 +101,5 @@ func createButtons(screen *initialScreen) {
 		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
 		"Continue Game",
 		56,
-		nil)
+		func(b *button) { loadGame() })
 }
