@@ -56,7 +56,7 @@ func startNewSudokuGame(b *button) {
 
 	selectedCell = matrixCell{B: nil, Row: 0, Col: 0}
 
-	createEverything()
+	createEverything(false)
 }
 
 func renderSudokuScreen() {
@@ -84,12 +84,17 @@ func renderSudokuScreen() {
 
 // Create UI elements
 
-func createEverything() {
+func createEverything(cont bool) {
 	createMatrix()
 	createBoundaries()
 	createNumInput()
 	createBackButton()
-	backButton.Fn = func(b *button) { saveGame(); chooseDifficulty(nil) }
+
+	if cont {
+		backButton.Fn = func(b *button) { InitialScreen() }
+	} else {
+		backButton.Fn = func(b *button) { saveGame(); chooseDifficulty(nil) }
+	}
 
 	renderSudokuScreen()
 }
@@ -275,7 +280,6 @@ func saveGame() {
 	gridSolution := sudoku.GetSolution()
 
 	saveGame := saveStatus{Sol: gridSolution, Cur: grid, Org: originalGrid}
-	fmt.Println(saveGame)
 
 	json, err := json.MarshalIndent(saveGame, "", " ")
 	if err != nil {
@@ -298,5 +302,5 @@ func loadGame() {
 	grid = data.Cur
 	originalGrid = data.Org
 
-	createEverything()
+	createEverything(true)
 }

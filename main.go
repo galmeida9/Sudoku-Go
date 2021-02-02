@@ -12,11 +12,4 @@ func main() {
 
 	game.InitialScreen()
 
-	// a := [1]int{2}
-	// test(&a)
-	// fmt.Println(a)
 }
-
-// func test(a *[1]int) {
-// 	a[0] = 3
-// }
