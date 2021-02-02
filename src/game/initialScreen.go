@@ -44,15 +44,14 @@ func InitialScreen() {
 
 func renderInitialScreen(screen initialScreen) {
 	for {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.MouseButtonEvent:
-				screen.startButton.processEvent(event)
-				screen.continueButton.processEvent(event)
-			case *sdl.QuitEvent:
-				closeGame()
-				return
-			}
+		event := sdl.WaitEvent()
+		switch event.(type) {
+		case *sdl.MouseButtonEvent:
+			screen.startButton.processEvent(event)
+			screen.continueButton.processEvent(event)
+		case *sdl.QuitEvent:
+			closeGame()
+			return
 		}
 
 		renderer.SetDrawColor(46, 42, 56, 255)
