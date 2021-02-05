@@ -101,5 +101,10 @@ func createButtons(screen *initialScreen) {
 		&sdl.Color{R: 0, G: 0, B: 0, A: 0},
 		"Continue Game",
 		56,
-		func(b *button) { loadGame() })
+		func(b *button) { loadGame(b) })
+}
+
+func noSavegame(b *button) {
+	b.Text.text = "No save game"
+	_, b.Text.textTex, _ = createText(b.Text.text, 64, 0, 0, 0, 0)
 }

@@ -1,8 +1,8 @@
 package sudoku
 
 import (
+	"fmt"
 	"math/rand"
-	"reflect"
 	"time"
 )
 
@@ -271,13 +271,21 @@ func GetImpossibleNum(grid [][]int, row, col int) []int {
 }
 
 func CheckSolution(grid [][]int) bool {
-	return reflect.DeepEqual(grid, gridSolution)
+	for row := 0; row < rowSize; row++ {
+		for col := 0; col < columnSize; col++ {
+			if gridSolution[row][col] != grid[row][col] {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func setDifficulty(dif int) [][]int {
 	switch dif {
 	case 0:
-		return difficulty(1, 30)
+		return difficulty(30, 50)
 	case 1:
 		return difficulty(30, 50)
 	case 2:
@@ -318,6 +326,7 @@ func difficulty(min, max int) [][]int {
 		}
 	}
 
+	fmt.Println(gridSolution)
 	return gridToSolve
 }
 

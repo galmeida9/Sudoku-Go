@@ -3,6 +3,7 @@ package game
 import "github.com/veandco/go-sdl2/sdl"
 
 var easy, medium, hard button
+var isEasy bool
 
 func chooseDifficulty(b *button) {
 	easy = createDifficultyOpt("Easy", 75, 200)
