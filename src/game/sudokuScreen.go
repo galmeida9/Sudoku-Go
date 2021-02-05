@@ -269,7 +269,6 @@ func changeCellNum(b *button) {
 	if selectedCell.B != nil && sudoku.CheckValue(grid, selectedCell.Row, selectedCell.Col, num) && isEasy || selectedCell.B != nil && !isEasy {
 		selectedCell.B.Text = b.Text
 		_, selectedCell.B.Text.textTex, _ = createText(b.Text.text, 24, 110, 110, 110, 255)
-		changeColor(selectedCell.B)
 		grid[selectedCell.Row][selectedCell.Col] = num
 	}
 }
@@ -302,7 +301,6 @@ func clearNum(b *button) {
 		selectedCell.B.Text.text = " "
 		_, selectedCell.B.Text.textTex, _ = createText(" ", 24, 0, 0, 0, 0)
 		grid[selectedCell.Row][selectedCell.Col] = 0
-		changeColor(selectedCell.B)
 	}
 }
 
@@ -361,7 +359,7 @@ func saveGame() {
 
 	json, err := json.MarshalIndent(saveGame, "", " ")
 	if err != nil {
-		fmt.Errorf("error converting game state to json: ", err)
+		fmt.Println("error converting game state to json: ", err)
 	}
 
 	ioutil.WriteFile("savegame.json", json, 0644)
@@ -370,7 +368,7 @@ func saveGame() {
 func loadGame(b *button) {
 	file, err := ioutil.ReadFile("savegame.json")
 	if err != nil {
-		fmt.Errorf("Error loading savegame: ", err)
+		fmt.Println("Error loading savegame: ", err)
 		noSavegame(b)
 		return
 	}

@@ -1,7 +1,6 @@
 package sudoku
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -15,6 +14,7 @@ var numbList = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 
 var gridSolution [9][]int
 
+// CreateGrid creates a new sudoku matrix, where the 0 values correspond to the empty cells
 func CreateGrid(difficulty int) [][]int {
 	return setDifficulty(difficulty)
 }
@@ -250,6 +250,7 @@ func squareHas(square [][]int, value int) bool {
 	return false
 }
 
+// CheckValue checks if a value is valid in a given cell
 func CheckValue(grid [][]int, row, col, value int) bool {
 	minRow := row / 3 * 3
 	maxRow := (row/3 + 1) * 3
@@ -270,6 +271,7 @@ func GetImpossibleNum(grid [][]int, row, col int) []int {
 	return availableOptions
 }
 
+// CheckSolution checks if the solution to the game is the correct one
 func CheckSolution(grid [][]int) bool {
 	for row := 0; row < rowSize; row++ {
 		for col := 0; col < columnSize; col++ {
@@ -326,7 +328,6 @@ func difficulty(min, max int) [][]int {
 		}
 	}
 
-	fmt.Println(gridSolution)
 	return gridToSolve
 }
 
@@ -344,10 +345,12 @@ func CheckZeroes(grid [][]int) int {
 	return counter
 }
 
+// GetSolution returns the solution to the game
 func GetSolution() [9][]int {
 	return gridSolution
 }
 
+// ReadSudoku replaces the solution of the sudoku
 func ReadSudoku(sol [9][]int) {
 	// Save the grid solution
 	for i := 0; i < rowSize; i++ {

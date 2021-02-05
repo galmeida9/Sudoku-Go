@@ -74,13 +74,13 @@ func renderInitialScreen(screen initialScreen) {
 func loadLogoImg() (*sdl.Texture, error) {
 	img, err := img.Load("resources/img/sudoku.png")
 	if err != nil {
-		return nil, fmt.Errorf("Error initializing sudoku logo image: ", err)
+		return nil, fmt.Errorf("Error initializing sudoku logo image: %q", err)
 	}
 	defer img.Free()
 
 	logoTex, err := renderer.CreateTextureFromSurface(img)
 	if err != nil {
-		return nil, fmt.Errorf("Error initializing sudoku logo texture: ", err)
+		return nil, fmt.Errorf("Error initializing sudoku logo texture: %q", err)
 	}
 
 	return logoTex, nil

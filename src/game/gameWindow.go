@@ -22,7 +22,7 @@ var backButton button
 // CreateGameWindow creates the window for the game
 func CreateGameWindow() error {
 	if err := initializeDependencies(); err != nil {
-		return fmt.Errorf("Error initializing Dependencies: ", err)
+		return fmt.Errorf("Error initializing Dependencies: %q", err)
 	}
 
 	var err error
@@ -32,12 +32,12 @@ func CreateGameWindow() error {
 		screenWidth, screenHeight,
 		sdl.WINDOW_OPENGL)
 	if err != nil {
-		return fmt.Errorf("Error initializing window: ", err)
+		return fmt.Errorf("Error initializing window: %q", err)
 	}
 
 	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
-		return fmt.Errorf("Error initializing renderer: ", err)
+		return fmt.Errorf("Error initializing renderer: %q", err)
 	}
 
 	if err = createWindowIcon(); err != nil {
@@ -49,15 +49,15 @@ func CreateGameWindow() error {
 
 func initializeDependencies() error {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
-		return fmt.Errorf("Error initializing SDL: ", err)
+		return fmt.Errorf("Error initializing SDL: %q", err)
 	}
 
 	if err := ttf.Init(); err != nil {
-		return fmt.Errorf("Error initializing TTF: ", err)
+		return fmt.Errorf("Error initializing TTF: %q", err)
 	}
 
 	if err := img.Init(sdl.INIT_EVERYTHING); err != nil {
-		return fmt.Errorf("Error initializing SDL: ", err)
+		return fmt.Errorf("Error initializing SDL: %q", err)
 	}
 
 	return nil
@@ -66,17 +66,17 @@ func initializeDependencies() error {
 func createText(text string, size int, r, g, b, a uint8) (*ttf.Font, *sdl.Texture, error) {
 	textFont, err := ttf.OpenFont("resources/fonts/YuseiMagic-Regular.ttf", size)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error initializing game font: ", err)
+		return nil, nil, fmt.Errorf("Error initializing game font: %q", err)
 	}
 
 	titleSurface, err := textFont.RenderUTF8Blended(text, sdl.Color{R: r, G: g, B: b, A: a})
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error initializing sudoku title logo surface: ", err)
+		return nil, nil, fmt.Errorf("Error initializing sudoku title logo surface: %q", err)
 	}
 
 	textTex, err := renderer.CreateTextureFromSurface(titleSurface)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error initializing sudoku title logo texture: ", err)
+		return nil, nil, fmt.Errorf("Error initializing sudoku title logo texture: %q", err)
 	}
 
 	return textFont, textTex, nil
@@ -85,7 +85,7 @@ func createText(text string, size int, r, g, b, a uint8) (*ttf.Font, *sdl.Textur
 func createWindowIcon() error {
 	img, err := img.Load("resources/img/sudoku.png")
 	if err != nil {
-		return fmt.Errorf("Error setting window icon: ", err)
+		return fmt.Errorf("Error setting window icon: %q", err)
 	}
 	defer img.Free()
 
