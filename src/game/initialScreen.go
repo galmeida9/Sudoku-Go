@@ -37,7 +37,7 @@ func InitialScreen() {
 	defer titleTex.Destroy()
 	defer titleFont.Close()
 
-	createButtons(&screen)
+	createInitialButtons(&screen)
 
 	renderInitialScreen(screen)
 }
@@ -86,7 +86,7 @@ func loadLogoImg() (*sdl.Texture, error) {
 	return logoTex, nil
 }
 
-func createButtons(screen *initialScreen) {
+func createInitialButtons(screen *initialScreen) {
 	screen.startButton = createButton(
 		&sdl.Rect{X: 75, Y: 400, W: 450, H: 105},
 		&sdl.Color{R: 240, G: 228, B: 81, A: 255},

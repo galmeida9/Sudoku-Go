@@ -287,9 +287,9 @@ func CheckSolution(grid [][]int) bool {
 func setDifficulty(dif int) [][]int {
 	switch dif {
 	case 0:
-		return difficulty(30, 50)
+		return difficulty(40, 50)
 	case 1:
-		return difficulty(30, 50)
+		return difficulty(40, 50)
 	case 2:
 		return difficulty(50, 89)
 	}
