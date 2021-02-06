@@ -234,45 +234,66 @@ func drawNumbInput() {
 //----------------------------//
 
 func changeColor(b *button) {
-	// Check if color is the original one (grey)
-	if b.Color.r == 214 {
-		b.Color = struct {
-			r uint8
-			g uint8
-			b uint8
-			a uint8
-		}{r: 240, g: 228, b: 81, a: 255}
+	showHighlight(grid[selectedCell.Row][selectedCell.Col])
 
-		if selectedCell.B != nil {
-			changeColor(selectedCell.B)
-		}
-
-		selectedCell.B = b
-
-		if isEasy {
-			setAvailableOpt(sudoku.GetImpossibleNum(grid, selectedCell.Row, selectedCell.Col))
-		}
+	if selectedCell.Initial {
+		// if an initial puzzle cell is selected then no input is valid
+		setAvailableOpt([]int{1, 2, 3, 4, 5, 6, 7, 8, 9})
+	} else if isEasy {
+		// if it is on easy mode to help we show the only valid options
+		setAvailableOpt(sudoku.GetImpossibleNum(grid, selectedCell.Row, selectedCell.Col))
 	} else {
-		b.Color = struct {
-			r uint8
-			g uint8
-			b uint8
-			a uint8
-		}{r: 214, g: 214, b: 214, a: 255}
-
-		selectedCell.B = nil
+		setAvailableOpt([]int{})
 	}
 }
+
+func showHighlight(value int) {
+	for row := 0; row < rowSize; row++ {
+		for col := 0; col < colSize; col++ {
+			if grid[row][col] == value && row != selectedCell.Row && col != selectedCell.Col && value != 0 {
+				matrixCells[row][col].B.Color = struct {
+					r uint8
+					g uint8
+					b uint8
+					a uint8
+				}{r: 224, g: 172, b: 27, a: 255}
+			} else if row == selectedCell.Row && col == selectedCell.Col {
+				matrixCells[row][col].B.Color = struct {
+					r uint8
+					g uint8
+					b uint8
+					a uint8
+				}{r: 240, g: 228, b: 81, a: 255}
+			} else {
+				matrixCells[row][col].B.Color = struct {
+					r uint8
+					g uint8
+					b uint8
+					a uint8
+				}{r: 214, g: 214, b: 214, a: 255}
+			}
+		}
+	}
+}
+
+// func clearHighlights() {
+// 	for i := 0; i < colSize; i++ {
+// 		highlightsX[i].Rect.X = 0
+// 	}
+// }
 
 func changeCellNum(b *button) {
 	num, _ := strconv.Atoi(b.Text.text)
-	if selectedCell.B != nil && sudoku.CheckValue(grid, selectedCell.Row, selectedCell.Col, num) && isEasy || selectedCell.B != nil && !isEasy {
+	if !selectedCell.Initial && selectedCell.B != nil && sudoku.CheckValue(grid, selectedCell.Row, selectedCell.Col, num) && isEasy ||
+		!selectedCell.Initial && selectedCell.B != nil && !isEasy {
 		selectedCell.B.Text = b.Text
 		_, selectedCell.B.Text.textTex, _ = createText(b.Text.text, 24, 110, 110, 110, 255)
 		grid[selectedCell.Row][selectedCell.Col] = num
+		showHighlight(num)
 	}
 }
 
+// setAvailableOpt shows the valid options given and array of the invalid ones
 func setAvailableOpt(opt []int) {
 	resetOpt()
 	for i := range opt {
@@ -301,6 +322,7 @@ func clearNum(b *button) {
 		selectedCell.B.Text.text = " "
 		_, selectedCell.B.Text.textTex, _ = createText(" ", 24, 0, 0, 0, 0)
 		grid[selectedCell.Row][selectedCell.Col] = 0
+		showHighlight(0)
 	}
 }
 
@@ -327,7 +349,9 @@ func clearGame(b *button) {
 func processButtonEvents(event sdl.Event) {
 	for row := 0; row < rowSize; row++ {
 		for col := 0; col < colSize; col++ {
-			if !matrixCells[row][col].Initial && matrixCells[row][col].B.processEvent(event) {
+			if matrixCells[row][col].B.processEvent(event) {
+				selectedCell.B = matrixCells[row][col].B
+				selectedCell.Initial = matrixCells[row][col].Initial
 				selectedCell.Row = row
 				selectedCell.Col = col
 				break

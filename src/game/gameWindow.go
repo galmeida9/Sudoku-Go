@@ -36,6 +36,7 @@ func CreateGameWindow() error {
 	}
 
 	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 	if err != nil {
 		return fmt.Errorf("Error initializing renderer: %q", err)
 	}
